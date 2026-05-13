@@ -51,6 +51,7 @@ pipeline {
             }
             steps {
                 sh '''
+                        sudo apt-get install -y curl
                         curl -fsSL https://raw.githubusercontent.com/render-oss/cli/refs/heads/main/bin/install.sh | sh
                         render --version
                         echo "Deployment to production. Site ID: $RENDER_API_KEY"
