@@ -3,10 +3,6 @@
 pipeline {
     agent any
 
-    environment{
-        RENDER_API_KEY="rnd_dTg7XpJ5oR0nUmhxLDytpnSEaP40"
-    }
-
     stages {
         stage('Build') {
             agent {
@@ -50,14 +46,17 @@ pipeline {
                 }
             }
             steps {
-                sh '''
-                        sudo apt-get install -y curl
-                        curl -fsSL https://raw.githubusercontent.com/render-oss/cli/refs/heads/main/bin/install.sh | sh
-                        render --version
-                        echo "Deployment to production. Site ID: $RENDER_API_KEY"
+                withCredentials([string(credentialsId: 'RENDER_API_KEY', variable: 'RENDER_API_KEY')]) {
+                    sh '''
+                        apk add --no-cache curl
+                        SERVICE_ID=$(echo $RENDER_API_KEY | cut -d':' -f1)
+                        curl -X POST https://api.render.com/v1/services/${SERVICE_ID}/deploys \
+                          -H "Authorization: Bearer $RENDER_API_KEY" \
+                          -H "Content-Type: application/json" \
+                          -d '{"clearCache":"clear"}'
                     '''
+                }
             }
-
         }
         
     }
