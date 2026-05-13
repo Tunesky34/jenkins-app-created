@@ -51,7 +51,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    curl -fsSL https://render.com/install-cli.sh | bash
+                        curl -fsSL https://raw.githubusercontent.com/render-oss/cli/refs/heads/main/bin/install.sh | sh
                         render --version
                         echo "Deployment to production. Site ID: $RENDER_API_KEY"
                     '''
