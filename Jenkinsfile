@@ -1,6 +1,7 @@
 pipeline {
     agent any
 
+<<<<<<< HEAD
     environment {
         IMAGE_NAME = "jenkins-app-created"
         CONTAINER_NAME = "jenkins-app-container1"
@@ -13,6 +14,11 @@ pipeline {
     triggers {
         githubPush()
     }
+=======
+    Environment {
+        RENDER_API_KEY: "rnd_dTg7XpJ5oR0nUmhxLDytpnSEaP40"
+    } 
+>>>>>>> 9fe238f (update)
 
     stages {
 
@@ -117,6 +123,33 @@ pipeline {
 
         failure {
             echo 'Pipeline failed.'
+        }
+    }
+        stage('Deploy') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+            }
+            steps {
+                sh '''
+                // curl -fsSL https://raw.githubusercontent.com/render-oss/cli/refs/heads/main/bin/install.sh | sh
+                   curl -fsSL https://render.com/install-cli.sh | bash
+                   node_modules/.bin/render --version
+                   echo "Deploying to production. Site ID: $RENDER_API_KEY"
+                '''
+            }
+        post {
+            always {
+                junit 'test-results/junit.xml'
+            }
+            success {
+                echo 'Pipeline completed successfully - app deployed to Render!'
+            }
+            failure {
+                echo 'Pipeline failed - deployment was skipped.'
+            }
         }
     }
 }
