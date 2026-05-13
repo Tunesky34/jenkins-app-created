@@ -4,7 +4,7 @@ pipeline {
     agent any
 
     environment{
-        RENDER_API_KEY: "rnd_dTg7XpJ5oR0nUmhxLDytpnSEaP40"
+        RENDER_API_KEY="rnd_dTg7XpJ5oR0nUmhxLDytpnSEaP40"
     }
 
     stages {
