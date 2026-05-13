@@ -48,7 +48,7 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'RENDER_API_KEY', variable: 'RENDER_API_KEY')]) {
                     sh '''
-                        apk add --no-cache curl
+                        sudo apk add --no-cache curl
                         SERVICE_ID=$(echo $RENDER_API_KEY | cut -d':' -f1)
                         curl -X POST https://api.render.com/v1/services/${SERVICE_ID}/deploys \
                           -H "Authorization: Bearer $RENDER_API_KEY" \
