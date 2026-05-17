@@ -32,8 +32,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    test -f ${CONTAINER_NAME}:/app/build/index.html
-                    CI=true npm test
+                    CI=true npm test -- --watchAll=false
                 '''
             }
         }
