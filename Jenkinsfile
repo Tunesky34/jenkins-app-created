@@ -3,6 +3,10 @@
 pipeline {
     agent any
 
+    triggers {
+        githubPush()
+    }
+
     stages {
         stage('Build') {
             agent {
@@ -45,7 +49,7 @@ pipeline {
                     reuseNode true
                 }
             }
-            steps {
+            steps {     
                 withCredentials([string(credentialsId: 'RENDER_API_KEY', variable: 'RENDER_API_KEY')]) {
                     sh '''
                         SERVICE_ID=$(echo $RENDER_API_KEY | cut -d':' -f1)
