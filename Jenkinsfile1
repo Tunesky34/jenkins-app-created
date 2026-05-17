@@ -1,28 +1,37 @@
+// jenkins-docker pipeline script
+
 pipeline {
     agent any
 
     environment {
-        IMAGE_NAME = "jenkins-app-created"
-        CONTAINER_NAME = "jenkins-app-container"
+        IMAGE_NAME = "react-jenkins-app"
+        CONTAINER_NAME = "react-container"
+    }
+
+    triggers {
+        githubPush()
     }
 
     stages {
-        stage('Build Docker Image') {
-            steps {
-                sh 'docker build -t $IMAGE_NAME .'
+        stage('Build') {
+            agent {
+                docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
             }
-        }
-
-        stage('Run Container') {
             steps {
                 sh '''
-                docker run -d \
-                  --name $CONTAINER_NAME \
-                  -p 3050:3000 \
-                  $IMAGE_NAME
+                    ls -la
+                    node --version
+                    npm --version
+                    npm ci --cache /tmp/.npm-cache
+                    npm run build
+                    ls -la
                 '''
             }
         }
+
         stage('Test') {
             agent {
                 docker {
@@ -32,11 +41,12 @@ pipeline {
             }
             steps {
                 sh '''
-                    test -f ${CONTAINER_NAME}:/app/build/index.html
+                    test -f build/index.html
                     CI=true npm test
                 '''
             }
         }
+
         stage('Deploy to Render') {
             agent {
                 docker {
