@@ -50,9 +50,10 @@ pipeline {
                 }
             }
             steps {     
-                withCredentials([string(credentialsId: 'RENDER_HOOK', variable: 'RENDER_HOOK')]) {
+                withCredentials([string(credentialsId: 'RENDER_HOOK', variable: 'RENDER_HOOK')] [string(credentialsId: 'NETLIFY_HOOK', variable: 'NETLIFY_HOOK')]) {
                     sh '''
                         curl "$RENDER_HOOK"
+                        curl -X POST -d {} https://api.netlify.com/build_hooks/6a09778699bfb3b415ff0bbb
                     '''
                 }
             }
