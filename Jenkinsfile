@@ -3,9 +3,9 @@ pipeline {
 
     environment {
         IMAGE_NAME = "jenkins-app-created"
-        CONTAINER_NAME = "jenkins-app-container"
+        CONTAINER_NAME = "jenkins-app-container1"
     }
-    
+
     triggers {
         githubPush()
     }
@@ -22,7 +22,7 @@ pipeline {
                 sh '''
                 docker run -d \
                   --name $CONTAINER_NAME \
-                  -p 3050:3000 \
+                  -p 3051:3000 \
                   $IMAGE_NAME
                 '''
             }
