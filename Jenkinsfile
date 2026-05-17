@@ -5,6 +5,10 @@ pipeline {
         IMAGE_NAME = "jenkins-app-created"
         CONTAINER_NAME = "jenkins-app-container"
     }
+    
+    triggers {
+        githubPush()
+    }
 
     stages {
         stage('Build Docker Image') {
