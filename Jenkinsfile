@@ -4,7 +4,10 @@ pipeline {
     environment {
         IMAGE_NAME = "jenkins-app-created"
         CONTAINER_NAME = "jenkins-app-container1"
-        SCANNER_HOME = tool 'SonarScanner'
+    }
+
+    tools {
+        nodejs 'NodeJS'
     }
 
     triggers {
@@ -12,77 +15,108 @@ pipeline {
     }
 
     stages {
-        stage('Build Docker Image') {
+
+        stage('Checkout Code') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                checkout scm
             }
         }
 
-        stage('Run Container') {
+        stage('Install Dependencies') {
             steps {
-                sh '''
-                docker run -d \
-                  --name $CONTAINER_NAME \
-                  -p 3051:3000 \
-                  $IMAGE_NAME
-                '''
+                sh 'npm install'
             }
         }
-        stage('Test') {
+
+        stage('Run Tests') {
             agent {
                 docker {
                     image 'node:18-alpine'
                     reuseNode true
                 }
             }
+
             steps {
                 sh '''
                     CI=true npm test -- --watchAll=false
                 '''
             }
         }
+
         stage('SonarQube Analysis') {
+            environment {
+                SCANNER_HOME = tool 'SonarScanner'
+            }
+
             steps {
                 withSonarQubeEnv('SonarQube') {
                     sh '''
-                    $SCANNER_HOME/bin/sonar-scanner \
-                    -Dsonar.projectKey=my-jenkins-app \
-                    -Dsonar.sources=. \
-                    -Dsonar.host.url=http://192.168.12.101:9000 \
-                    -Dsonar.token=YOUR_TOKEN
+                        $SCANNER_HOME/bin/sonar-scanner \
+                        -Dsonar.projectKey=my-jenkins-app \
+                        -Dsonar.sources=. \
+                        -Dsonar.sourceEncoding=UTF-8
                     '''
                 }
             }
         }
-        stage('Deploy to Render') {
-            agent {
-                docker {
-                    image 'node:18'
-                    reuseNode true
-                }
+
+        stage('Build Docker Image') {
+            steps {
+                sh '''
+                    docker build -t $IMAGE_NAME .
+                '''
             }
-            steps {     
+        }
+
+        stage('Stop Existing Container') {
+            steps {
+                sh '''
+                    docker stop $CONTAINER_NAME || true
+                    docker rm $CONTAINER_NAME || true
+                '''
+            }
+        }
+
+        stage('Run Docker Container') {
+            steps {
+                sh '''
+                    docker run -d \
+                    --name $CONTAINER_NAME \
+                    -p 3051:3000 \
+                    $IMAGE_NAME
+                '''
+            }
+        }
+
+        stage('Deploy to Render & Netlify') {
+            steps {
                 withCredentials([
-                    string(credentialsId: 'RENDER_HOOK', variable: 'RENDER_HOOK'), string(credentialsId: 'NETLIFY_HOOK', variable: 'NETLIFY_HOOK')]) {
+                    string(credentialsId: 'RENDER_HOOK', variable: 'RENDER_HOOK'),
+                    string(credentialsId: 'NETLIFY_HOOK', variable: 'NETLIFY_HOOK')
+                ]) {
+
                     sh '''
                         curl "$RENDER_HOOK"
-                        curl -X POST -d {} https://api.netlify.com/build_hooks/6a09778699bfb3b415ff0bbb
+
+                        curl -X POST -d {} "$NETLIFY_HOOK"
                     '''
                 }
             }
         }
-        
     }
 
     post {
+
         always {
-            junit 'test-results/junit.xml'
+            echo 'Pipeline execution finished.'
         }
+
         success {
-            echo 'Pipeline completed - app deployed to Render!'
+            echo 'Pipeline completed successfully!'
         }
+
         failure {
-            echo 'Pipeline failed - deployment skipped.'
+            echo 'Pipeline failed.'
         }
     }
 }
