@@ -4,6 +4,7 @@ pipeline {
     environment {
         IMAGE_NAME = "jenkins-app-created"
         CONTAINER_NAME = "jenkins-app-container1"
+        SCANNER_HOME = tool 'SonarScanner'
     }
 
     triggers {
@@ -38,6 +39,19 @@ pipeline {
                 sh '''
                     CI=true npm test -- --watchAll=false
                 '''
+            }
+        }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                    $SCANNER_HOME/bin/sonar-scanner \
+                    -Dsonar.projectKey=my-jenkins-app \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=http://192.168.12.101:9000 \
+                    -Dsonar.token=YOUR_TOKEN
+                    '''
+                }
             }
         }
         stage('Deploy to Render') {
