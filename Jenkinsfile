@@ -63,20 +63,20 @@ pipeline {
             }
         }
         stage('Deploy to Render') {
-            withcredentials{
-                usernamePassword(credentialsId: 'render-credentials', usernameVariable: 'RENDER_USERNAME', passwordVariable: 'RENDER_PASSWORD')
-            }
             steps {
+                withcredentials{
+                    usernamePassword(credentialsId: 'render-credentials', usernameVariable: 'RENDER_USERNAME', passwordVariable: 'RENDER_PASSWORD')
+            }
                 script {
                     sh 'curl -X POST $RENDER_HOOK'
                 }
             }
         }
         stage('Deploy to Netlify') {
+            steps {
             withcredentials{
                 usernamePassword(credentialsId: 'netlify-credentials', usernameVariable: 'NETLIFY_USERNAME', passwordVariable: 'NETLIFY_PASSWORD')
             }
-            steps {
                 script {
                     sh 'curl -X POST $NETLIFY_HOOK'
                 }
