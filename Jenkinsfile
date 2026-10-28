@@ -65,24 +65,24 @@ pipeline {
         stage('Deploy to Render') {
             steps {
                 withcredentials{
-                    usernamePassword(credentialsId: 'render-credentials', usernameVariable: 'RENDER_USERNAME', passwordVariable: 'RENDER_PASSWORD')
+                    usernamePassword(credentialsId: 'render-credentials', usernameVariable: 'RENDER_API_KEYS')
             }
                 script {
                     sh 'curl -X POST $RENDER_HOOK'
                 }
             }
         }
-        stage('Deploy to Netlify') {
-            steps {
-            withcredentials{
-                usernamePassword(credentialsId: 'netlify-credentials', usernameVariable: 'NETLIFY_USERNAME', passwordVariable: 'NETLIFY_PASSWORD')
-            }
-                script {
-                    sh 'curl -X POST $NETLIFY_HOOK'
-                }
-            }
-        }
-    }
+  //      stage('Deploy to Netlify') {
+   //         steps {
+   //         withcredentials{
+ //               usernamePassword(credentialsId: 'netlify-credentials', usernameVariable: 'NETLIFY_USERNAME', passwordVariable: 'NETLIFY_PASSWORD')
+    //        }
+    //            script {
+     //               sh 'curl -X POST $NETLIFY_HOOK'
+      //          }
+      //      }
+      //  }
+   }
     post{
         success{
             echo 'Pipeline completed successfully.'
@@ -91,6 +91,7 @@ pipeline {
             echo 'Pipeline failed.'
         }
     }
+
 
 
 }
