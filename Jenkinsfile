@@ -64,11 +64,8 @@ pipeline {
         }
         stage('Deploy to Render') {
             steps {
-                withcredentials{
-                    usernamePassword(credentialsId: 'render-credentials', usernameVariable: 'RENDER_API_KEYS')
-            }
-                script {
-                    sh 'curl -X POST $RENDER_HOOK'
+                withCredentials([string(credentialsId: 'render-credentials', variable: 'RENDER_HOOK')]) {
+                    sh 'curl --fail --show-error --request POST "$RENDER_HOOK"'
                 }
             }
         }
@@ -79,9 +76,10 @@ pipeline {
     //        }
     //            script {
      //               sh 'curl -X POST $NETLIFY_HOOK'
+                
       //          }
-      //      }
-      //  }
+   //            }
+   //        }
    }
     post{
         success{
