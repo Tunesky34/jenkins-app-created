@@ -19,12 +19,6 @@ pipeline {
         }
 
         stage('Run container') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
             steps {
                 script {
                     sh 'docker run -d --name $Container_name $Image_name'
