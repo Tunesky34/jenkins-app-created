@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         Image_name = "jenkins-practice-image"
-        Container_name = "jenkins-practice-container"
+        Container_name = "jenkins-practice-container2"
     }
 
     triggers {
