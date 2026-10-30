@@ -10,7 +10,7 @@ pipeline {
         pollSCM('* * * * *') // Polls the SCM every minute for changes
     }    
     stages {
-        stage('Build docker image') 
+        stage('Build docker image') {
             steps {
                 script {
                     sh 'docker build -t $Image_name .'
