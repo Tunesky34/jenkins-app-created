@@ -3,7 +3,7 @@ pipeline {
     
     environment {
         Image_name = "jenkins-practice-image"
-        Container_name = "jenkins-practice-container2"
+        Container_name = "jenkins-practice-container3"
     }
 
     triggers {
@@ -44,25 +44,24 @@ pipeline {
                 }
             }
         }
-        stage('Deploy to Render') {
-            steps {
-                withCredentials([string(credentialsId: 'render-credentials', variable: 'RENDER_HOOK')]) {
-                    sh 'curl --fail --show-error --request POST "$RENDER_HOOK"'
+        stage('Deploy to Render & Netlify') {
+             steps {
+                withCredentials([
+                    string(credentialsId: 'RENDER_HOOK', variable: 'RENDER_HOOK'),
+                    string(credentialsId: 'NETLIFY_HOOK', variable: 'NETLIFY_HOOK')
+                ]) {
+
+                    sh '''
+                        curl "$RENDER_HOOK"
+
+                        curl -X POST -d {} "$NETLIFY_HOOK"
+                    '''
                 }
             }
         }
-  //      stage('Deploy to Netlify') {
-   //         steps {
-   //         withcredentials{
- //               usernamePassword(credentialsId: 'netlify-credentials', usernameVariable: 'NETLIFY_USERNAME', passwordVariable: 'NETLIFY_PASSWORD')
-    //        }
-    //            script {
-     //               sh 'curl -X POST $NETLIFY_HOOK'
-                
-      //          }
-   //            }
-   //        }
-   }
+        
+   
+    }
     post{
         success{
             echo 'Pipeline completed successfully.'
