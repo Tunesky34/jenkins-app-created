@@ -10,13 +10,7 @@ pipeline {
         pollSCM('* * * * *') // Polls the SCM every minute for changes
     }    
     stages {
-        stage('Build docker image') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
+        stage('Build docker image') 
             steps {
                 script {
                     sh 'docker build -t $Image_name .'
