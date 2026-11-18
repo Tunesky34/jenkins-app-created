@@ -1,95 +1,51 @@
 pipeline {
     agent any
-
+    
     environment {
-        IMAGE_NAME = "jenkins-app-created"
-        CONTAINER_NAME = "jenkins-app-container1"
-    }
-
-    tools {
-        nodejs 'NodeJS'
+        Image_name = "jenkins-practice-image"
+        Container_name = "jenkins-practice-container4"
     }
 
     triggers {
-        githubPush()
-    }
-
+        pollSCM('* * * * *') // Polls the SCM every minute for changes
+    }    
     stages {
-
-        stage('Checkout Code') {
+        stage('Build docker image') {
             steps {
-                checkout scm
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('Run Tests') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-            }
-
-            steps {
-                sh '''
-                    CI=true npm test -- --watchAll=false
-                '''
-            }
-        }
-
-        stage('SonarQube Analysis') {
-            environment {
-                SCANNER_HOME = tool 'SonarScanner'
-            }
-
-            steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        $SCANNER_HOME/bin/sonar-scanner \
-                        -Dsonar.projectKey=my-jenkins-app \
-                        -Dsonar.sources=. \
-                        -Dsonar.sourceEncoding=UTF-8
-                    '''
+                script {
+                    sh 'docker build -t $Image_name .'
                 }
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Run container') {
             steps {
-                sh '''
-                    docker build -t $IMAGE_NAME .
-                '''
+                script {
+                    sh 'docker run -d --name $Container_name $Image_name'
+                }
             }
         }
 
-        stage('Stop Existing Container') {
+        stage('Test') {
             steps {
-                sh '''
-                    docker stop $CONTAINER_NAME || true
-                    docker rm $CONTAINER_NAME || true
-                '''
+                script {
+                    sh 'docker exec $Container_name echo "Running tests..."'
+                    // Add your test commands here
+                }
             }
         }
 
-        stage('Run Docker Container') {
+        stage('sonarqube analysis') {
+            
             steps {
-                sh '''
-                    docker run -d \
-                    --name $CONTAINER_NAME \
-                    -p 3051:3000 \
-                    $IMAGE_NAME
-                '''
+                script {
+                    sh 'docker exec $Container_name echo "Running SonarQube analysis..."'
+                    // Add your SonarQube analysis commands here
+                }
             }
         }
-
         stage('Deploy to Render & Netlify') {
-            steps {
+             steps {
                 withCredentials([
                     string(credentialsId: 'RENDER_HOOK', variable: 'RENDER_HOOK'),
                     string(credentialsId: 'NETLIFY_HOOK', variable: 'NETLIFY_HOOK')
@@ -103,20 +59,18 @@ pipeline {
                 }
             }
         }
+        
+   
     }
-
-    post {
-
-        always {
-            echo 'Pipeline execution finished.'
+    post{
+        success{
+            echo 'Pipeline completed successfully.'
         }
-
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-
-        failure {
+        failure{
             echo 'Pipeline failed.'
         }
     }
+
+
+
 }
